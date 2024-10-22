@@ -25,14 +25,14 @@ struct MotorState
         tauEst = 0;
     }
 };
-
+// 惯性测量单元
 struct IMU
 {
-    float quaternion[4];    // w, x, y, z
-    float gyroscope[3];
-    float accelerometer[3];
+    float quaternion[4];    // 四元数 q = w + xi + yj + zk
+    float gyroscope[3];     // 陀螺仪
+    float accelerometer[3]; // 加速度计
 
-    IMU(){
+    IMU(){ // 构造函数，全部初始化为0
         for(int i = 0; i < 3; i++){
             quaternion[i] = 0;
             gyroscope[i] = 0;
@@ -40,9 +40,9 @@ struct IMU
         }
         quaternion[3] = 0;
     }
-
+    // 将四元数转换为旋转矩阵
     RotMat getRotMat(){
-        Quat quat;
+        Quat quat; // 四元数，4维向量
         quat << quaternion[0], quaternion[1], quaternion[2], quaternion[3];
         return quatToRotMat(quat);
     }

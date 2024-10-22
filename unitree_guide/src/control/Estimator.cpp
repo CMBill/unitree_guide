@@ -4,7 +4,7 @@
 #include "control/Estimator.h"
 #include "common/mathTools.h"
 #include "common/enumClass.h"
-
+// 状态估计器构造函数
 Estimator::Estimator(QuadrupedRobot *robotModel, LowlevelState* lowState, 
                      VecInt4 *contact, Vec4 *phase, double dt, Vec18 Qdig,
                      std::string testName)
@@ -39,7 +39,7 @@ Estimator::Estimator(QuadrupedRobot *robotModel, LowlevelState* lowState,
 
 Estimator::~Estimator(){
 }
-
+// 完成参数的初始化
 void Estimator::_initSystem(){
     _g << 0, 0, -9.81;
     _largeVariance = 100;
@@ -120,9 +120,9 @@ void Estimator::_initSystem(){
         _pub = _nh.advertise<nav_msgs::Odometry>("odom", 1);
     #endif  // COMPILE_WITH_MOVE_BASE
 }
-
+// 将估计器运行一步
 void Estimator::run(){
-    _feetH.setZero();
+    _feetH.setZero(); // setZero()函数将矩阵中的所有元素都设置为0
     _feetPosGlobalKine = _robModel->getFeet2BPositions(*_lowState, FrameType::GLOBAL);
     _feetVelGlobalKine = _robModel->getFeet2BVelocities(*_lowState, FrameType::GLOBAL);
 

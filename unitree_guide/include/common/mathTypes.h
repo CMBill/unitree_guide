@@ -39,7 +39,7 @@ using VecX = typename Eigen::Matrix<double, Eigen::Dynamic, 1>;
 /************************/
 /******** Matrix ********/
 /************************/
-// Rotation Matrix
+// Rotation Matrix 3x3
 using RotMat = typename Eigen::Matrix<double, 3, 3>;
 
 // Homogenous Matrix

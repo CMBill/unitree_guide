@@ -25,6 +25,7 @@
     #include <boost/array.hpp>
 #endif  // COMPILE_WITH_MOVE_BASE
 
+// 状态估计器
 class Estimator{
 public:
     Estimator(QuadrupedRobot *robotModel, LowlevelState* lowState, VecInt4 *contact, Vec4 *phase, double dt);
