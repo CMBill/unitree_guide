@@ -5,18 +5,16 @@
 #include <iostream>
 
 
-/************************/
-/*******QuadrupedLeg*****/
-/************************/
+// 数值初始化
 QuadrupedLeg::QuadrupedLeg(int legID, float abadLinkLength, float hipLinkLength, 
                            float kneeLinkLength, Vec3 pHip2B)
             :_abadLinkLength(abadLinkLength), 
              _hipLinkLength(hipLinkLength), 
              _kneeLinkLength(kneeLinkLength), 
-             _pHip2B(pHip2B){
-    if (legID == 0 || legID == 2)
+             _pHip2B(pHip2B){ 
+    if (legID == 0 || legID == 2) // 右侧两条腿
         _sideSign = -1;
-    else if (legID == 1 || legID == 3)
+    else if (legID == 1 || legID == 3) // 左侧
         _sideSign = 1;
     else{
         std::cout << "Leg ID incorrect!" << std::endl;
@@ -24,7 +22,8 @@ QuadrupedLeg::QuadrupedLeg(int legID, float abadLinkLength, float hipLinkLength,
     }
 }
 
-// Forward Kinematics
+// 正向运动学，输入为三个关节角度，
+// 输出足端相对于基座坐标系{0}的位置
 Vec3 QuadrupedLeg::calcPEe2H(Vec3 q){
     float l1 = _sideSign * _abadLinkLength;
     float l2 = -_hipLinkLength;
@@ -50,19 +49,19 @@ Vec3 QuadrupedLeg::calcPEe2H(Vec3 q){
     return pEe2H;
 }
 
-// Forward Kinematics
+// Forward Kinematics 计算足端相对于机身中心的向量
 Vec3 QuadrupedLeg::calcPEe2B(Vec3 q){
-    return _pHip2B + calcPEe2H(q);
+    return _pHip2B + calcPEe2H(q); // 机身中心到该腿基座坐标系{0}原点的向量 + 该腿基座坐标系{0}到足端的向量
 }
 
-// Derivative Forward Kinematics
+// Derivative Forward Kinematics 计算足端的速度向量
 Vec3 QuadrupedLeg::calcVEe(Vec3 q, Vec3 qd){
     return calcJaco(q) * qd;
 }
 
-// Inverse Kinematics
+// Inverse Kinematics 逆运动学，由足端位置pEe计算三个关节角度
 Vec3 QuadrupedLeg::calcQ(Vec3 pEe, FrameType frame){
-    Vec3 pEe2H;
+    Vec3 pEe2H; // 足端相对于该腿基座坐标系{0}的位置
     if(frame == FrameType::HIP)
         pEe2H = pEe;
     else if(frame == FrameType::BODY)
@@ -77,20 +76,20 @@ Vec3 QuadrupedLeg::calcQ(Vec3 pEe, FrameType frame){
     float px, py, pz;
     float b2y, b3z, b4z, a, b, c;
 
-    px = pEe2H(0);
-    py = pEe2H(1);
-    pz = pEe2H(2);
+    px = pEe2H(0); // x_p 足端 P 点相对于基座坐标系{0}的位置
+    py = pEe2H(1); // y_p
+    pz = pEe2H(2); // z_p
 
     b2y = _abadLinkLength * _sideSign;
     b3z = -_hipLinkLength;
     b4z = -_kneeLinkLength;
     a = _abadLinkLength;
-    c = sqrt(pow(px, 2) + pow(py, 2) + pow(pz, 2)); // whole length
-    b = sqrt(pow(c, 2) - pow(a, 2)); // distance between shoulder and footpoint
+    c = sqrt(pow(px, 2) + pow(py, 2) + pow(pz, 2)); // whole length pow2平方
+    b = sqrt(pow(c, 2) - pow(a, 2)); // distance between shoulder and footpoint AP
 
-    q1 = q1_ik(py, pz, b2y);
-    q3 = q3_ik(b3z, b4z, b);
-    q2 = q2_ik(q1, q3, px, py, pz, b3z, b4z);
+    q1 = q1_ik(py, pz, b2y); // θ1 5.18
+    q3 = q3_ik(b3z, b4z, b); // θ3 
+    q2 = q2_ik(q1, q3, px, py, pz, b3z, b4z); // θ2
 
     qResult(0) = q1;
     qResult(1) = q2;
@@ -99,25 +98,23 @@ Vec3 QuadrupedLeg::calcQ(Vec3 pEe, FrameType frame){
     return qResult;
 }
 
-// Derivative Inverse Kinematics
+// 计算三个关节的角速度，vEe 足端速度，q 三个关节角度
 Vec3 QuadrupedLeg::calcQd(Vec3 q, Vec3 vEe){
-    return calcJaco(q).inverse() * vEe;
+    return calcJaco(q).inverse() * vEe; // 逆矩阵
 }
-
-// Derivative Inverse Kinematics
+// 计算三个关节的角速度，vEe 足端速度，pEe 足端位置
 Vec3 QuadrupedLeg::calcQd(Vec3 pEe, Vec3 vEe, FrameType frame){
     Vec3 q = calcQ(pEe, frame);
     return calcJaco(q).inverse() * vEe;
 }
-
-// Inverse Dynamics
+// 计算关节力矩，q 三个关节角度，force 足端力
 Vec3 QuadrupedLeg::calcTau(Vec3 q, Vec3 force){
-    return calcJaco(q).transpose() * force;
+    return calcJaco(q).transpose() * force; //转置矩阵
 }
 
-// Jacobian Matrix
+// 雅可比矩阵，输入三个关节角度
 Mat3 QuadrupedLeg::calcJaco(Vec3 q){
-    Mat3 jaco;
+    Mat3 jaco; // 3x3 矩阵
 
     float l1 = _abadLinkLength * _sideSign;
     float l2 = -_hipLinkLength;
@@ -133,6 +130,7 @@ Mat3 QuadrupedLeg::calcJaco(Vec3 q){
 
     float c23 = c2 * c3 - s2 * s3;
     float s23 = s2 * c3 + c2 * s3;
+    // 雅可比矩阵的具体值
     jaco(0, 0) = 0;
     jaco(1, 0) = -l3 * c1 * c23 - l2 * c1 * c2 - l1 * s1;
     jaco(2, 0) = -l3 * s1 * c23 - l2 * c2 * s1 + l1 * c1;
@@ -146,7 +144,8 @@ Mat3 QuadrupedLeg::calcJaco(Vec3 q){
     return jaco;
 }
 
-float QuadrupedLeg::q1_ik(float py, float pz, float l1){
+float QuadrupedLeg::q1_ik(
+                    float py, float pz, float l1){
     float q1;
     float L = sqrt(pow(py,2)+pow(pz,2)-pow(l1,2));
     q1 = atan2(pz*l1+py*L, py*l1-pz*L);

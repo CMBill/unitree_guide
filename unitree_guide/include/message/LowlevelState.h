@@ -46,19 +46,19 @@ struct IMU
         quat << quaternion[0], quaternion[1], quaternion[2], quaternion[3];
         return quatToRotMat(quat);
     }
-
+    // 将加速度转换为三维向量
     Vec3 getAcc(){
         Vec3 acc;
         acc << accelerometer[0], accelerometer[1], accelerometer[2];
         return acc;
     }
-
+    // 将陀螺仪转换为三维向量
     Vec3 getGyro(){
         Vec3 gyro;
         gyro << gyroscope[0], gyroscope[1], gyroscope[2];
         return gyro;
     }
-
+    // 获取四元数为四维向量
     Quat getQuat(){
         Quat q;
         q << quaternion[0], quaternion[1], quaternion[2], quaternion[3];
